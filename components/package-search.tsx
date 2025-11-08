@@ -86,7 +86,7 @@ export const PackageSearch = () => {
             )}
           </CommandList>
         )}
-        <div className="flex flex-wrap items-center gap-2 px-3">
+        <div className="flex items-center gap-2 overflow-x-auto px-3">
           <PackageSearchIcon className="size-4 shrink-0 opacity-50" />
           {packages.map((pkg) => (
             <Badge className="gap-1 pr-1 pl-2" key={pkg} variant="secondary">
