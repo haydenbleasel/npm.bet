@@ -1,6 +1,5 @@
 "use client";
 
-import { useAtomValue } from "jotai";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -11,7 +10,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { groupingAtom } from "@/providers/filters";
+import { useGrouping } from "@/providers/filters";
 
 export const description = "An interactive area chart";
 
@@ -35,7 +34,7 @@ type ChartAreaInteractiveProps = {
 };
 
 export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
-  const grouping = useAtomValue(groupingAtom);
+  const [grouping] = useGrouping();
 
   const getWeekStart = (date: Date): string => {
     const day = date.getDay();

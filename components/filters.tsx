@@ -1,6 +1,5 @@
 "use client";
 
-import { useAtom } from "jotai";
 import {
   Select,
   SelectContent,
@@ -8,11 +7,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { groupingAtom, timeRangeAtom } from "@/providers/filters";
+import { useGrouping, useTimeRange } from "@/providers/filters";
 
 export const Filters = () => {
-  const [timeRange, setTimeRange] = useAtom(timeRangeAtom);
-  const [grouping, setGrouping] = useAtom(groupingAtom);
+  const [timeRange, setTimeRange] = useTimeRange();
+  const [grouping, setGrouping] = useGrouping();
 
   return (
     <div className="flex gap-2">

@@ -29,9 +29,6 @@ importers:
       input-otp:
         specifier: ^1.4.2
         version: 1.4.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      jotai:
-        specifier: ^2.15.1
-        version: 2.15.1(@types/react@19.2.2)(react@19.2.0)
       lucide-react:
         specifier: ^0.552.0
         version: 0.552.0(react@19.2.0)
@@ -41,6 +38,9 @@ importers:
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
+      nuqs:
+        specifier: ^2.7.3
+        version: 2.7.3(next@16.0.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0)
       radix-ui:
         specifier: ^1.4.3
         version: 1.4.3(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -1129,6 +1129,9 @@ packages:
   '@radix-ui/rect@1.1.1':
     resolution: {integrity: sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw==}
 
+  '@standard-schema/spec@1.0.0':
+    resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
+
   '@standard-schema/utils@0.3.0':
     resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
@@ -1481,24 +1484,6 @@ packages:
     resolution: {integrity: sha512-ekilCSN1jwRvIbgeg/57YFh8qQDNbwDb9xT/qu2DAHbFFZUicIl4ygVaAvzveMhMVr3LnpSKTNnwt8PoOfmKhQ==}
     hasBin: true
 
-  jotai@2.15.1:
-    resolution: {integrity: sha512-yHT1HAZ3ba2Q8wgaUQ+xfBzEtcS8ie687I8XVCBinfg4bNniyqLIN+utPXWKQE93LMF5fPbQSVRZqgpcN5yd6Q==}
-    engines: {node: '>=12.20.0'}
-    peerDependencies:
-      '@babel/core': '>=7.0.0'
-      '@babel/template': '>=7.0.0'
-      '@types/react': '>=17.0.0'
-      react: '>=17.0.0'
-    peerDependenciesMeta:
-      '@babel/core':
-        optional: true
-      '@babel/template':
-        optional: true
-      '@types/react':
-        optional: true
-      react:
-        optional: true
-
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -1632,6 +1617,27 @@ packages:
       babel-plugin-react-compiler:
         optional: true
       sass:
+        optional: true
+
+  nuqs@2.7.3:
+    resolution: {integrity: sha512-lQzSYLsXUYftc0cerww64yevjMeYOX8thkcqI25XtyyTEJFTk3LE+i2hcY2h0Jwvp1+owCb+KJ0GMaKQwfmq3g==}
+    peerDependencies:
+      '@remix-run/react': '>=2'
+      '@tanstack/react-router': ^1
+      next: '>=14.2.0'
+      react: '>=18.2.0 || ^19.0.0-0'
+      react-router: ^6 || ^7
+      react-router-dom: ^6 || ^7
+    peerDependenciesMeta:
+      '@remix-run/react':
+        optional: true
+      '@tanstack/react-router':
+        optional: true
+      next:
+        optional: true
+      react-router:
+        optional: true
+      react-router-dom:
         optional: true
 
   nypm@0.6.2:
@@ -2954,6 +2960,8 @@ snapshots:
 
   '@radix-ui/rect@1.1.1': {}
 
+  '@standard-schema/spec@1.0.0': {}
+
   '@standard-schema/utils@0.3.0': {}
 
   '@swc/helpers@0.5.15':
@@ -3250,11 +3258,6 @@ snapshots:
 
   jiti@2.6.1: {}
 
-  jotai@2.15.1(@types/react@19.2.2)(react@19.2.0):
-    optionalDependencies:
-      '@types/react': 19.2.2
-      react: 19.2.0
-
   js-tokens@4.0.0: {}
 
   jsonc-parser@3.3.1: {}
@@ -3359,6 +3362,13 @@ snapshots:
     transitivePeerDependencies:
       - '@babel/core'
       - babel-plugin-macros
+
+  nuqs@2.7.3(next@16.0.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(react@19.2.0):
+    dependencies:
+      '@standard-schema/spec': 1.0.0
+      react: 19.2.0
+    optionalDependencies:
+      next: 16.0.1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
 
   nypm@0.6.2:
     dependencies:

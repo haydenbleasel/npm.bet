@@ -1,4 +1,7 @@
-import { atom } from "jotai";
+import { parseAsString, useQueryState } from "nuqs";
 
-export const timeRangeAtom = atom<string>("last-year");
-export const groupingAtom = atom<string>("week");
+export const useTimeRange = () =>
+  useQueryState("timeRange", parseAsString.withDefault("last-year"));
+
+export const useGrouping = () =>
+  useQueryState("grouping", parseAsString.withDefault("week"));

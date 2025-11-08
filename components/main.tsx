@@ -1,9 +1,8 @@
 "use client";
 
-import { useAtomValue } from "jotai";
 import useSWR from "swr";
 import { getPackageData, type PackageData } from "@/actions/package/get";
-import { timeRangeAtom } from "@/providers/filters";
+import { useTimeRange } from "@/providers/filters";
 import { ChartAreaInteractive } from "./chart";
 import { EmptyState } from "./empty-state";
 
@@ -12,7 +11,7 @@ type MainProps = {
 };
 
 export const Main = ({ packageName }: MainProps) => {
-  const timeRange = useAtomValue(timeRangeAtom);
+  const [timeRange] = useTimeRange();
 
   const { data: packageData, error } = useSWR<PackageData>(
     packageName ? [packageName, timeRange] : null,
