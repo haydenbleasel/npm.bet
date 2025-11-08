@@ -52,6 +52,7 @@ export function Screenshot({ data }: ScreenshotProps) {
     <Dialog onOpenChange={setIsOpen} open={isOpen}>
       <DialogTrigger asChild>
         <Button
+          className="shadow-none"
           disabled={!data || data.length === 0}
           size="icon"
           variant="outline"
