@@ -14,7 +14,7 @@ export const Header = ({ data }: HeaderProps) => (
     <div className="flex items-center gap-2">
       <TimeRangeSelector />
       <GroupingSelector />
-      {data && data.length > 0 && <Screenshot data={data} />}
+      <Screenshot data={data} />
     </div>
   </header>
 );

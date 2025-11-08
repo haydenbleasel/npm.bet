@@ -16,7 +16,7 @@ import { ChartAreaInteractive } from "./chart";
 import { Logo } from "./logo";
 
 type ScreenshotProps = {
-  data: PackageData[];
+  data?: PackageData[];
 };
 
 export function Screenshot({ data }: ScreenshotProps) {
@@ -51,7 +51,11 @@ export function Screenshot({ data }: ScreenshotProps) {
   return (
     <Dialog onOpenChange={setIsOpen} open={isOpen}>
       <DialogTrigger asChild>
-        <Button size="icon" variant="outline">
+        <Button
+          disabled={!data || data.length === 0}
+          size="icon"
+          variant="outline"
+        >
           <DownloadIcon />
           <span className="sr-only">Download chart screenshot</span>
         </Button>
@@ -62,7 +66,7 @@ export function Screenshot({ data }: ScreenshotProps) {
         </DialogHeader>
         <div className="space-y-4">
           <div className="rounded-lg bg-chart-1 p-12 pb-8" ref={chartRef}>
-            <ChartAreaInteractive data={data} />
+            <ChartAreaInteractive data={data ?? []} />
             <div className="mt-8 flex items-center justify-center text-white">
               <Logo />
             </div>
