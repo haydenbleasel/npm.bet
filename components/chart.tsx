@@ -236,7 +236,7 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
                 key={pkg.package}
                 stroke={colors[index % colors.length]}
                 strokeWidth={2}
-                type="natural"
+                type="monotone"
               />
             ))}
             <ChartLegend content={<ChartLegendContent />} />
