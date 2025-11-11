@@ -21,10 +21,20 @@ type ScreenshotProps = {
   className?: string;
 };
 
+const colors = [
+  "var(--color-secondary)",
+  "var(--color-chart-1)",
+  "var(--color-chart-2)",
+  "var(--color-chart-3)",
+  "var(--color-chart-4)",
+  "var(--color-chart-5)",
+];
+
 export function Screenshot({ data, className }: ScreenshotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
+  const [backgroundColor, setBackgroundColor] = useState(colors[0]);
 
   const handleDownload = async () => {
     if (!chartRef.current) {
@@ -68,13 +78,43 @@ export function Screenshot({ data, className }: ScreenshotProps) {
           <DialogTitle>Download Chart</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="rounded-lg bg-chart-1 p-12 pb-8" ref={chartRef}>
+          <div
+            className="rounded-lg p-12 pb-8"
+            ref={chartRef}
+            style={{ backgroundColor }}
+          >
             <ChartAreaInteractive data={data ?? []} />
-            <div className="mt-8 flex items-center justify-center text-white">
+            <div
+              className={cn(
+                "mt-8 flex items-center justify-center",
+                backgroundColor === "var(--color-secondary)"
+                  ? "text-foreground"
+                  : "text-white"
+              )}
+            >
               <Logo />
             </div>
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-between">
+            <div className="flex items-center gap-2">
+              {colors.map((color) => (
+                <Button
+                  className={cn(
+                    "overflow-hidden rounded-full p-0 shadow-none",
+                    color === backgroundColor && "ring-2 ring-ring"
+                  )}
+                  key={color}
+                  onClick={() => setBackgroundColor(color)}
+                  size="icon-sm"
+                  variant="outline"
+                >
+                  <div
+                    className="size-full"
+                    style={{ backgroundColor: color }}
+                  />
+                </Button>
+              ))}
+            </div>
             <Button
               disabled={isDownloading}
               onClick={handleDownload}
