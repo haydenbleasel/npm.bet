@@ -12,8 +12,8 @@ import { Badge } from "./ui/badge";
 
 const examples = [
   {
-    label: "Next.js vs Vue.js",
-    packages: ["next.js", "vue.js"],
+    label: "Next.js vs Nuxt",
+    packages: ["next", "nuxt"],
   },
   {
     label: "React vs Angular",
