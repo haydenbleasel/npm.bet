@@ -31,7 +31,7 @@ export const Header = ({ data }: HeaderProps) => (
 
       <Drawer>
         <DrawerTrigger asChild>
-          <Button className="sm:hidden" size="icon-sm" variant="outline">
+          <Button className="sm:hidden" size="icon" variant="outline">
             <SettingsIcon />
           </Button>
         </DrawerTrigger>

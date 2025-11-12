@@ -10,7 +10,7 @@ export const ThemeToggle = () => {
   return (
     <Button
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      size="icon-sm"
+      size="icon"
       variant="outline"
     >
       <Icon className="size-4" />
