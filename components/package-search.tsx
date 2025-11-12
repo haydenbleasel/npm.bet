@@ -123,6 +123,7 @@ export const PackageSearch = () => {
           ))}
           <CommandPrimitive.Input
             autoCapitalize="off"
+            autoFocus
             className={cn(
               "flex flex-1 rounded-md bg-transparent py-2 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
             )}
