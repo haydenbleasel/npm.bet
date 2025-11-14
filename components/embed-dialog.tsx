@@ -63,14 +63,10 @@ export const EmbedDialog = () => {
     }
   }, [tab, snippets]);
 
-  if (packages.length === 0) {
-    return null;
-  }
-
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button size="icon" variant="outline">
+        <Button disabled={packages.length === 0} size="icon" variant="outline">
           <CodeIcon />
           <span className="sr-only">Embed</span>
         </Button>
