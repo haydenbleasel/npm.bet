@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import useSWR from "swr";
 import { getPackageData, type PackageData } from "@/actions/package/get";
 import { usePackages, useTimeRange } from "@/providers/filters";
@@ -17,6 +18,11 @@ export const Main = () => {
     async ([pkgs, range]: [string[], string]) =>
       Promise.all(pkgs.map((pkg) => getPackageData(pkg, range)))
   );
+
+  useEffect(() => {
+    document.title =
+      packages.length > 0 ? `${packages.join(" vs ")} | npm.bet` : "npm.bet";
+  }, [packages]);
 
   if (packages.length === 0) {
     return (
