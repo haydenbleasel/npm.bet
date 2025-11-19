@@ -18,9 +18,11 @@ import { GitHub } from "./github";
 import { GroupingSelector } from "./grouping-selector";
 import { Logo } from "./logo";
 import { Screenshot } from "./screenshot";
+import { Settings } from "./settings";
 import { ThemeToggle } from "./theme-toggle";
 import { TimeRangeSelector } from "./time-range-selector";
 import { Button } from "./ui/button";
+import { ButtonGroup } from "./ui/button-group";
 
 export const Header = () => {
   const [packages] = usePackages();
@@ -68,8 +70,12 @@ export const Header = () => {
           </DrawerContent>
         </Drawer>
 
-        <Screenshot className="hidden sm:flex" data={data} />
-        <ThemeToggle />
+        <ButtonGroup>
+          <Settings />
+          <Screenshot className="hidden sm:flex" data={data} />
+          <ThemeToggle />
+        </ButtonGroup>
+
         <GitHub />
       </div>
     </header>
