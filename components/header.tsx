@@ -40,7 +40,7 @@ export const Header = () => {
       <div className="flex items-center gap-2">
         <TimeRangeSelector className="hidden sm:flex" />
         <GroupingSelector className="hidden sm:flex" />
-        <MetricSelector className="hidden sm:flex" />
+        {packages.length > 1 && <MetricSelector className="hidden sm:flex" />}
 
         <ButtonGroup className="sm:hidden">
           <Drawer>
@@ -58,7 +58,7 @@ export const Header = () => {
                 <div className="space-y-2 p-4 pb-0">
                   <TimeRangeSelector className="w-full" />
                   <GroupingSelector className="w-full" />
-                  <MetricSelector className="w-full" />
+                  {packages.length > 1 && <MetricSelector className="w-full" />}
                 </div>
                 <DrawerFooter>
                   <DrawerClose asChild>
