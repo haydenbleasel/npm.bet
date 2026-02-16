@@ -10,7 +10,7 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -108,9 +108,15 @@ const groupData = (
 
 export const ChartAreaInteractive = ({ data }: ChartAreaInteractiveProps) => {
   const [grouping] = useGrouping();
-  const [metric] = useMetric();
-  const isShare = metric === "share";
+  const [metric, setMetric] = useMetric();
+  const isShare = metric === "share" && data.length > 1;
   const packageNames = data.map((pkg) => pkg.package);
+
+  useEffect(() => {
+    if (metric === "share" && data.length <= 1) {
+      setMetric(null);
+    }
+  }, [metric, data.length, setMetric]);
 
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: "Chart data is complex to compute"
   const chartData = useMemo(() => {
