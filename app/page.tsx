@@ -8,6 +8,7 @@ interface HomeProps {
     q: string;
     timeRange?: string;
     grouping?: string;
+    metric?: string;
   }>;
 }
 
@@ -17,7 +18,7 @@ const baseUrl = new URL(
 );
 
 export const generateMetadata = async ({ searchParams }: HomeProps) => {
-  const { q, timeRange, grouping } = await searchParams;
+  const { q, timeRange, grouping, metric } = await searchParams;
 
   if (!q) {
     return {
@@ -35,6 +36,9 @@ export const generateMetadata = async ({ searchParams }: HomeProps) => {
   }
   if (grouping) {
     ogUrl.searchParams.set("grouping", grouping);
+  }
+  if (metric) {
+    ogUrl.searchParams.set("metric", metric);
   }
 
   const metadata: Metadata = {
