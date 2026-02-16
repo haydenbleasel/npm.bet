@@ -10,3 +10,6 @@ export const useGrouping = () =>
 
 export const usePackages = () =>
   useQueryState("q", parseAsArrayOf(parseAsString, ",").withDefault([]));
+
+export const useMetric = () =>
+  useQueryState("metric", parseAsString.withDefault("downloads"));

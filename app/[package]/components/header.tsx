@@ -6,6 +6,7 @@ import { getPackageData, type PackageData } from "@/actions/package/get";
 import { GitHub } from "@/components/github";
 import { GroupingSelector } from "@/components/grouping-selector";
 import { Logo } from "@/components/logo";
+import { MetricSelector } from "@/components/metric-selector";
 import { Screenshot } from "@/components/screenshot";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { TimeRangeSelector } from "@/components/time-range-selector";
@@ -42,6 +43,7 @@ export const PackageHeader = ({ packages }: PackageHeaderProps) => {
       <div className="flex items-center gap-2">
         <TimeRangeSelector className="hidden sm:flex" />
         <GroupingSelector className="hidden sm:flex" />
+        {packages.length > 1 && <MetricSelector className="hidden sm:flex" />}
 
         <ButtonGroup className="sm:hidden">
           <Drawer>
@@ -59,6 +61,7 @@ export const PackageHeader = ({ packages }: PackageHeaderProps) => {
                 <div className="space-y-2 p-4 pb-0">
                   <TimeRangeSelector className="w-full" />
                   <GroupingSelector className="w-full" />
+                  {packages.length > 1 && <MetricSelector className="w-full" />}
                 </div>
                 <DrawerFooter>
                   <DrawerClose asChild>

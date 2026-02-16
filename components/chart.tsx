@@ -10,7 +10,7 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -20,7 +20,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { useGrouping } from "@/providers/filters";
+import { useGrouping, useMetric } from "@/providers/filters";
 
 export const description = "An interactive line chart";
 
@@ -108,6 +108,15 @@ const groupData = (
 
 export const ChartAreaInteractive = ({ data }: ChartAreaInteractiveProps) => {
   const [grouping] = useGrouping();
+  const [metric, setMetric] = useMetric();
+  const isShare = metric === "share" && data.length > 1;
+  const packageNames = useMemo(() => data.map((pkg) => pkg.package), [data]);
+
+  useEffect(() => {
+    if (metric === "share" && data.length <= 1) {
+      setMetric(null);
+    }
+  }, [metric, data.length, setMetric]);
 
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: "Chart data is complex to compute"
   const chartData = useMemo(() => {
@@ -156,12 +165,34 @@ export const ChartAreaInteractive = ({ data }: ChartAreaInteractiveProps) => {
       }
     }
 
-    return sortedDates.map((date) => ({
-      date,
-      dateEnd: getDateRangeEnd(date, grouping).toISOString().split("T")[0],
-      ...packagesByDate[date],
-    }));
-  }, [data, grouping]);
+    return sortedDates.map((date) => {
+      const row: Record<string, string | number> = {
+        date,
+        dateEnd: getDateRangeEnd(date, grouping).toISOString().split("T")[0],
+      };
+
+      const dateData = packagesByDate[date] ?? {};
+
+      if (isShare) {
+        const total = packageNames.reduce(
+          (sum, name) => sum + (dateData[name] ?? 0),
+          0
+        );
+        for (const name of packageNames) {
+          row[name] =
+            total > 0
+              ? Number((((dateData[name] ?? 0) / total) * 100).toFixed(1))
+              : 0;
+        }
+      } else {
+        for (const name of packageNames) {
+          row[name] = dateData[name] ?? 0;
+        }
+      }
+
+      return row;
+    });
+  }, [data, grouping, isShare, packageNames]);
 
   const chartConfig = data.reduce(
     (acc, pkg, index) => {
@@ -201,7 +232,11 @@ export const ChartAreaInteractive = ({ data }: ChartAreaInteractiveProps) => {
             />
             <YAxis
               axisLine={false}
+              domain={isShare ? [0, 100] : undefined}
               tickFormatter={(value) => {
+                if (isShare) {
+                  return `${value}%`;
+                }
                 if (value >= 1_000_000) {
                   return `${(value / 1_000_000).toFixed(1)}M`;
                 }
@@ -243,6 +278,11 @@ export const ChartAreaInteractive = ({ data }: ChartAreaInteractiveProps) => {
                     }
                     return `${formatDate(startDate)} - ${formatDate(endDate)}`;
                   }}
+                  valueFormatter={
+                    isShare
+                      ? (value) => `${Number(value).toFixed(1)}%`
+                      : undefined
+                  }
                 />
               }
               cursor={false}

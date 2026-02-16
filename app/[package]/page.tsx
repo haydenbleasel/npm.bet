@@ -10,6 +10,7 @@ interface PackagePageProps {
   searchParams: Promise<{
     timeRange?: string;
     grouping?: string;
+    metric?: string;
   }>;
 }
 
@@ -23,7 +24,7 @@ export const generateMetadata = async ({
   searchParams,
 }: PackagePageProps): Promise<Metadata> => {
   const { package: packageParam } = await params;
-  const { timeRange, grouping } = await searchParams;
+  const { timeRange, grouping, metric } = await searchParams;
   const packages = decodeURIComponent(packageParam).split(",");
   const title = packages.length > 1 ? packages.join(" vs ") : packages[0];
 
@@ -34,6 +35,9 @@ export const generateMetadata = async ({
   }
   if (grouping) {
     ogUrl.searchParams.set("grouping", grouping);
+  }
+  if (metric) {
+    ogUrl.searchParams.set("metric", metric);
   }
 
   return {
