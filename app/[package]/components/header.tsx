@@ -3,6 +3,15 @@
 import { SettingsIcon } from "lucide-react";
 import useSWR from "swr";
 import { getPackageData, type PackageData } from "@/actions/package/get";
+import { GitHub } from "@/components/github";
+import { GroupingSelector } from "@/components/grouping-selector";
+import { Logo } from "@/components/logo";
+import { MetricSelector } from "@/components/metric-selector";
+import { Screenshot } from "@/components/screenshot";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { TimeRangeSelector } from "@/components/time-range-selector";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Drawer,
   DrawerClose,
@@ -13,24 +22,17 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { EmbedDialog } from "./embed-dialog";
-import { usePackages, useTimeRange } from "@/providers/filters";
-import { GitHub } from "./github";
-import { GroupingSelector } from "./grouping-selector";
-import { Logo } from "./logo";
-import { MetricSelector } from "./metric-selector";
-import { Screenshot } from "./screenshot";
-import { ThemeToggle } from "./theme-toggle";
-import { TimeRangeSelector } from "./time-range-selector";
-import { Button } from "./ui/button";
-import { ButtonGroup } from "./ui/button-group";
+import { useTimeRange } from "@/providers/filters";
 
-export const Header = () => {
-  const [packages] = usePackages();
+interface PackageHeaderProps {
+  packages: string[];
+}
+
+export const PackageHeader = ({ packages }: PackageHeaderProps) => {
   const [timeRange] = useTimeRange();
 
   const { data } = useSWR<PackageData[]>(
-    packages.length > 0 ? [packages, timeRange] : null,
+    [packages, timeRange],
     async ([pkgs, range]: [string[], string]) =>
       Promise.all(pkgs.map((pkg) => getPackageData(pkg, range)))
   );
@@ -77,9 +79,6 @@ export const Header = () => {
           <ThemeToggle />
         </ButtonGroup>
 
-        <EmbedDialog />
-        <Screenshot className="hidden sm:flex" data={data} />
-        <ThemeToggle />
         <GitHub />
       </div>
     </header>

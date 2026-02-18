@@ -6,7 +6,7 @@ import { after } from "next/server";
 const redis = Redis.fromEnv();
 const isDevelopment = process.env.NODE_ENV === "development";
 
-export type NpmPackage = {
+export interface NpmPackage {
   package: {
     name: string;
     version: string;
@@ -18,12 +18,12 @@ export type NpmPackage = {
   score: {
     final: number;
   };
-};
+}
 
-export type NpmSearchResponse = {
+export interface NpmSearchResponse {
   objects: NpmPackage[];
   total: number;
-};
+}
 
 const CACHE_TTL_SECONDS = 3600; // 1 hour
 

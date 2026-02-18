@@ -58,9 +58,9 @@ const parseDateRangeFromString = (
   return { from, to };
 };
 
-type TimeRangeSelectorProps = {
+interface TimeRangeSelectorProps {
   className?: string;
-};
+}
 
 export const TimeRangeSelector = ({ className }: TimeRangeSelectorProps) => {
   const [timeRange, setTimeRange] = useTimeRange();

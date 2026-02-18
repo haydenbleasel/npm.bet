@@ -1,4 +1,11 @@
-import { startOfMonth, startOfWeek } from "date-fns";
+import {
+  isSameMonth,
+  isSameWeek,
+  isToday,
+  parseISO,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns";
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 import { getPackageData } from "@/actions/package/get";
@@ -25,10 +32,10 @@ const loadGoogleFont = async (font: string, text: string, weights: string) => {
 // Colors for OG image (CSS variables don't work in OG images)
 const colors = ["#f54a00", "#009689", "#104e64", "#ffba00", "#fd9a00"];
 
-type Point = {
+interface Point {
   x: number;
   y: number;
-};
+}
 
 const createSvgPath = (points: Point[]): string => {
   if (points.length === 0) {
@@ -119,6 +126,84 @@ const groupData = (
   }));
 };
 
+const removeCurrentPeriodFromData = (
+  data: { date: string; downloads: number }[],
+  grouping: string
+): { date: string; downloads: number }[] => {
+  if (data.length <= 1) {
+    return data;
+  }
+
+  const lastDateString = data.at(-1)?.date;
+  if (!lastDateString) {
+    return data;
+  }
+
+  const lastDate = parseISO(lastDateString);
+  const now = new Date();
+  let shouldRemove = false;
+
+  if (grouping === "day") {
+    shouldRemove = isToday(lastDate);
+  } else if (grouping === "week") {
+    shouldRemove = isSameWeek(lastDate, now, { weekStartsOn: 0 });
+  } else if (grouping === "month") {
+    shouldRemove = isSameMonth(lastDate, now);
+  }
+
+  if (shouldRemove) {
+    return data.slice(0, -1);
+  }
+
+  return data;
+};
+
+const computeShareData = (
+  groupedPackageData: {
+    package: string;
+    downloads: { date: string; downloads: number }[];
+  }[]
+) => {
+  let grandTotalDownloads = 0;
+  const packageTotals: Record<string, number> = {};
+  const downloadsByDate: Record<string, Record<string, number>> = {};
+  const overallShareByPackage: Record<string, number> = {};
+
+  for (const pkg of groupedPackageData) {
+    const pkgTotal = pkg.downloads.reduce((s, d) => s + d.downloads, 0);
+    packageTotals[pkg.package] = pkgTotal;
+    grandTotalDownloads += pkgTotal;
+    for (const d of pkg.downloads) {
+      if (!downloadsByDate[d.date]) {
+        downloadsByDate[d.date] = {};
+      }
+      downloadsByDate[d.date][pkg.package] = d.downloads;
+    }
+  }
+
+  for (const pkg of groupedPackageData) {
+    overallShareByPackage[pkg.package] =
+      grandTotalDownloads > 0
+        ? Number(
+            ((packageTotals[pkg.package] / grandTotalDownloads) * 100).toFixed(
+              1
+            )
+          )
+        : 0;
+    pkg.downloads = pkg.downloads.map((d) => {
+      const dateData = downloadsByDate[d.date] ?? {};
+      const total = Object.values(dateData).reduce((s, v) => s + v, 0);
+      return {
+        ...d,
+        downloads:
+          total > 0 ? Number(((d.downloads / total) * 100).toFixed(1)) : 0,
+      };
+    });
+  }
+
+  return overallShareByPackage;
+};
+
 export const GET = async (request: NextRequest) => {
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get("q");
@@ -182,6 +267,10 @@ export const GET = async (request: NextRequest) => {
   const packages = query.split(",").slice(0, 5); // Limit to 5 packages
   const timeRange = searchParams.get("timeRange") ?? "last-year";
   const grouping = searchParams.get("grouping") ?? "week";
+  const metric = searchParams.get("metric") ?? "downloads";
+  const isShare = metric === "share";
+  const removeCurrentPeriod =
+    searchParams.get("removeCurrentPeriod") !== "false";
 
   try {
     // Fetch data for all packages
@@ -190,17 +279,30 @@ export const GET = async (request: NextRequest) => {
     );
 
     // Apply grouping to each package's data
-    const groupedPackageData = packageDataArray.map((pkg) => ({
-      ...pkg,
-      downloads: groupData(pkg.downloads, grouping),
-    }));
+    const groupedPackageData = packageDataArray.map((pkg) => {
+      const grouped = groupData(pkg.downloads, grouping);
+      const processed = removeCurrentPeriod
+        ? removeCurrentPeriodFromData(grouped, grouping)
+        : grouped;
+      return {
+        ...pkg,
+        downloads: processed,
+      };
+    });
+
+    // Compute overall share stats and convert to share (%) if metric is "share"
+    const overallShareByPackage = isShare
+      ? computeShareData(groupedPackageData)
+      : {};
 
     // Find the maximum downloads value across all packages after grouping
-    const maxDownloads = Math.max(
-      ...groupedPackageData.flatMap((pkg) =>
-        pkg.downloads.map((d) => d.downloads)
-      )
-    );
+    const maxDownloads = isShare
+      ? 100
+      : Math.max(
+          ...groupedPackageData.flatMap((pkg) =>
+            pkg.downloads.map((d) => d.downloads)
+          )
+        );
 
     // Create SVG chart dimensions
     const chartWidth = 1100;
@@ -270,6 +372,9 @@ export const GET = async (request: NextRequest) => {
             (sum, d) => sum + d.downloads,
             0
           );
+          const displayValue = isShare
+            ? `${overallShareByPackage[pkg.package] ?? 0}%`
+            : formatNumber(totalDownloads);
           return (
             <div
               key={pkg.package}
@@ -286,7 +391,7 @@ export const GET = async (request: NextRequest) => {
                 {pkg.package}
               </span>
               <span tw="text-lg font-semibold text-[#737373]">
-                {formatNumber(totalDownloads)}
+                {displayValue}
               </span>
             </div>
           );

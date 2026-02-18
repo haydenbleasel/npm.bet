@@ -1,8 +1,17 @@
 "use client";
 
-import { startOfMonth, startOfWeek } from "date-fns";
+import {
+  addMonths,
+  addWeeks,
+  isSameMonth,
+  isSameWeek,
+  isToday,
+  parseISO,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns";
+import { useEffect, useMemo } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
-
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ChartContainer,
@@ -11,7 +20,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { useGrouping } from "@/providers/filters";
+import { useGrouping, useMetric } from "@/providers/filters";
 
 export const description = "An interactive line chart";
 
@@ -23,7 +32,7 @@ const colors = [
   "var(--chart-5)",
 ];
 
-type ChartAreaInteractiveProps = {
+interface ChartAreaInteractiveProps {
   data: {
     start: string;
     end: string;
@@ -33,69 +42,84 @@ type ChartAreaInteractiveProps = {
       day: string;
     }[];
   }[];
+}
+
+const getDateRangeEnd = (startDate: string, grouping: string) => {
+  const date = new Date(startDate);
+
+  if (grouping === "week") {
+    return addWeeks(date, 1);
+  }
+
+  if (grouping === "month") {
+    return addMonths(date, 1);
+  }
+
+  return date;
 };
 
-export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
-  const [grouping] = useGrouping();
+const getWeekStart = (date: Date) => {
+  const weekStart = startOfWeek(date, { weekStartsOn: 0 });
 
-  const getWeekStart = (date: Date): string => {
-    const weekStart = startOfWeek(date, { weekStartsOn: 0 });
-    return weekStart.toISOString().split("T")[0];
-  };
+  return weekStart.toISOString().split("T")[0];
+};
 
-  const getMonthStart = (date: Date): string => {
-    const monthStart = startOfMonth(date);
-    return monthStart.toISOString().split("T")[0];
-  };
+const getMonthStart = (date: Date) => {
+  const monthStart = startOfMonth(date);
 
-  const groupData = (
-    downloads: { downloads: number; day: string }[],
-    groupBy: string
-  ): { date: string; downloads: number }[] => {
-    if (groupBy === "day") {
-      return downloads.map((item) => ({
-        date: item.day,
-        downloads: item.downloads,
-      }));
-    }
+  return monthStart.toISOString().split("T")[0];
+};
 
-    const getGroupKey = (date: Date): string => {
-      if (groupBy === "week") {
-        return getWeekStart(date);
-      }
-      return getMonthStart(date);
-    };
-
-    const grouped = downloads.reduce(
-      (acc, item) => {
-        const groupKey = getGroupKey(new Date(item.day));
-        if (!acc[groupKey]) {
-          acc[groupKey] = 0;
-        }
-        acc[groupKey] += item.downloads;
-        return acc;
-      },
-      {} as Record<string, number>
-    );
-
-    return Object.entries(grouped).map(([date, downloadCount]) => ({
-      date,
-      downloads: downloadCount,
+const groupData = (
+  downloads: { downloads: number; day: string }[],
+  groupBy: string
+): { date: string; downloads: number }[] => {
+  if (groupBy === "day") {
+    return downloads.map((item) => ({
+      date: item.day,
+      downloads: item.downloads,
     }));
-  };
+  }
 
-  const getDateRangeEnd = (startDate: string): string => {
-    const date = new Date(startDate);
-    if (grouping === "week") {
-      date.setDate(date.getDate() + 6);
-    } else if (grouping === "month") {
-      date.setMonth(date.getMonth() + 1);
-      date.setDate(date.getDate() - 1);
+  const getGroupKey = (date: Date): string => {
+    if (groupBy === "week") {
+      return getWeekStart(date);
     }
-    return date.toISOString().split("T")[0];
+    return getMonthStart(date);
   };
 
-  const mergePackageData = () => {
+  const grouped = downloads.reduce(
+    (acc, item) => {
+      const groupKey = getGroupKey(new Date(item.day));
+      if (!acc[groupKey]) {
+        acc[groupKey] = 0;
+      }
+      acc[groupKey] += item.downloads;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+
+  return Object.entries(grouped).map(([date, downloadCount]) => ({
+    date,
+    downloads: downloadCount,
+  }));
+};
+
+export const ChartAreaInteractive = ({ data }: ChartAreaInteractiveProps) => {
+  const [grouping] = useGrouping();
+  const [metric, setMetric] = useMetric();
+  const isShare = metric === "share" && data.length > 1;
+  const packageNames = useMemo(() => data.map((pkg) => pkg.package), [data]);
+
+  useEffect(() => {
+    if (metric === "share" && data.length <= 1) {
+      setMetric(null);
+    }
+  }, [metric, data.length, setMetric]);
+
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: "Chart data is complex to compute"
+  const chartData = useMemo(() => {
     const allDates = new Set<string>();
     const packagesByDate: Record<string, Record<string, number>> = {};
 
@@ -112,14 +136,63 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
 
     const sortedDates = Array.from(allDates).sort();
 
-    return sortedDates.map((date) => ({
-      date,
-      dateEnd: grouping === "day" ? date : getDateRangeEnd(date),
-      ...packagesByDate[date],
-    }));
-  };
+    // Remove the most recent data point to avoid showing incomplete periods
+    // For weekly/monthly grouping, we need to check if the current period is complete
+    if (sortedDates.length > 1) {
+      const lastDateString = sortedDates.at(-1);
 
-  const chartData = mergePackageData();
+      if (!lastDateString) {
+        return sortedDates;
+      }
+
+      const lastDate = parseISO(lastDateString);
+      const now = new Date();
+      let shouldRemove = false;
+
+      if (grouping === "day") {
+        // For daily grouping, check if it's today
+        shouldRemove = isToday(lastDate);
+      } else if (grouping === "week") {
+        // For weekly grouping, check if we're in the same week
+        shouldRemove = isSameWeek(lastDate, now, { weekStartsOn: 0 });
+      } else if (grouping === "month") {
+        // For monthly grouping, check if we're in the same month
+        shouldRemove = isSameMonth(lastDate, now);
+      }
+
+      if (shouldRemove) {
+        sortedDates.pop();
+      }
+    }
+
+    return sortedDates.map((date) => {
+      const row: Record<string, string | number> = {
+        date,
+        dateEnd: getDateRangeEnd(date, grouping).toISOString().split("T")[0],
+      };
+
+      const dateData = packagesByDate[date] ?? {};
+
+      if (isShare) {
+        const total = packageNames.reduce(
+          (sum, name) => sum + (dateData[name] ?? 0),
+          0
+        );
+        for (const name of packageNames) {
+          row[name] =
+            total > 0
+              ? Number((((dateData[name] ?? 0) / total) * 100).toFixed(1))
+              : 0;
+        }
+      } else {
+        for (const name of packageNames) {
+          row[name] = dateData[name] ?? 0;
+        }
+      }
+
+      return row;
+    });
+  }, [data, grouping, isShare, packageNames]);
 
   const chartConfig = data.reduce(
     (acc, pkg, index) => {
@@ -159,7 +232,11 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
             />
             <YAxis
               axisLine={false}
+              domain={isShare ? [0, 100] : undefined}
               tickFormatter={(value) => {
+                if (isShare) {
+                  return `${value}%`;
+                }
                 if (value >= 1_000_000) {
                   return `${(value / 1_000_000).toFixed(1)}M`;
                 }
@@ -201,6 +278,11 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
                     }
                     return `${formatDate(startDate)} - ${formatDate(endDate)}`;
                   }}
+                  valueFormatter={
+                    isShare
+                      ? (value) => `${Number(value).toFixed(1)}%`
+                      : undefined
+                  }
                 />
               }
               cursor={false}
@@ -221,4 +303,4 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
       </CardContent>
     </Card>
   );
-}
+};

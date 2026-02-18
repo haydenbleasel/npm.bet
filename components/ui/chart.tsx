@@ -115,6 +115,7 @@ function ChartTooltipContent({
   labelFormatter,
   labelClassName,
   formatter,
+  valueFormatter,
   color,
   nameKey,
   labelKey,
@@ -125,6 +126,7 @@ function ChartTooltipContent({
     indicator?: "line" | "dot" | "dashed"
     nameKey?: string
     labelKey?: string
+    valueFormatter?: (value: number | string) => string
   }) {
   const { config } = useChart()
 
@@ -234,9 +236,11 @@ function ChartTooltipContent({
                           {itemConfig?.label || item.name}
                         </span>
                       </div>
-                      {item.value && (
+                      {item.value != null && (
                         <span className="text-foreground font-mono font-medium tabular-nums">
-                          {item.value.toLocaleString()}
+                          {valueFormatter && !Array.isArray(item.value)
+                            ? valueFormatter(item.value)
+                            : item.value.toLocaleString()}
                         </span>
                       )}
                     </div>

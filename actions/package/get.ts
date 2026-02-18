@@ -6,7 +6,7 @@ import { after } from "next/server";
 const redis = Redis.fromEnv();
 const isDevelopment = process.env.NODE_ENV === "development";
 
-export type PackageData = {
+export interface PackageData {
   start: string;
   end: string;
   package: string;
@@ -14,7 +14,7 @@ export type PackageData = {
     downloads: number;
     day: string;
   }[];
-};
+}
 
 const formatDateForAPI = (date: Date): string => {
   const year = date.getFullYear();

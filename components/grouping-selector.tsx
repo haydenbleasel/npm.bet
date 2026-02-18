@@ -11,9 +11,9 @@ import {
 import { cn } from "@/lib/utils";
 import { useGrouping } from "@/providers/filters";
 
-type GroupingSelectorProps = {
+interface GroupingSelectorProps {
   className?: string;
-};
+}
 
 export const GroupingSelector = ({ className }: GroupingSelectorProps) => {
   const [grouping, setGrouping] = useGrouping();

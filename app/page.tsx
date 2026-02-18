@@ -3,13 +3,14 @@ import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { Main } from "@/components/main";
 
-type HomeProps = {
+interface HomeProps {
   searchParams: Promise<{
     q: string;
     timeRange?: string;
     grouping?: string;
+    metric?: string;
   }>;
-};
+}
 
 const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
 const baseUrl = new URL(
@@ -17,7 +18,7 @@ const baseUrl = new URL(
 );
 
 export const generateMetadata = async ({ searchParams }: HomeProps) => {
-  const { q, timeRange, grouping } = await searchParams;
+  const { q, timeRange, grouping, metric } = await searchParams;
 
   if (!q) {
     return {
@@ -35,6 +36,9 @@ export const generateMetadata = async ({ searchParams }: HomeProps) => {
   }
   if (grouping) {
     ogUrl.searchParams.set("grouping", grouping);
+  }
+  if (metric) {
+    ogUrl.searchParams.set("metric", metric);
   }
 
   const metadata: Metadata = {
