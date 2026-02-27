@@ -1,14 +1,10 @@
-import { TZDate } from "@date-fns/tz";
-import {
-  isSameMonth,
-  isSameWeek,
-  isToday,
-  parseISO,
-  startOfMonth,
-  startOfWeek,
-} from "date-fns";
 import { type NextRequest, NextResponse } from "next/server";
 import { getPackageData, type PackageData } from "@/actions/package/get";
+import {
+  formatNumber,
+  groupData,
+  shouldRemoveIncompleteDate,
+} from "@/lib/chart-utils";
 
 const colors = [
   "#3b82f6", // blue
@@ -18,76 +14,10 @@ const colors = [
   "#8b5cf6", // purple
 ];
 
-type ChartDataPoint = {
+interface ChartDataPoint {
   date: string;
   [key: string]: number | string;
-};
-
-const getWeekStart = (date: Date): string => {
-  const weekStart = startOfWeek(date, { weekStartsOn: 0 });
-  return weekStart.toISOString().split("T")[0];
-};
-
-const getMonthStart = (date: Date): string => {
-  const monthStart = startOfMonth(date);
-  return monthStart.toISOString().split("T")[0];
-};
-
-const groupData = (
-  downloads: { downloads: number; day: string }[],
-  groupBy: string
-): { date: string; downloads: number }[] => {
-  if (groupBy === "day") {
-    return downloads.map((item) => ({
-      date: item.day,
-      downloads: item.downloads,
-    }));
-  }
-
-  const getGroupKey = (date: Date): string => {
-    if (groupBy === "week") {
-      return getWeekStart(date);
-    }
-    return getMonthStart(date);
-  };
-
-  const grouped = downloads.reduce(
-    (acc, item) => {
-      const groupKey = getGroupKey(new Date(item.day));
-      if (!acc[groupKey]) {
-        acc[groupKey] = 0;
-      }
-      acc[groupKey] += item.downloads;
-      return acc;
-    },
-    {} as Record<string, number>
-  );
-
-  return Object.entries(grouped).map(([date, downloadCount]) => ({
-    date,
-    downloads: downloadCount,
-  }));
-};
-
-const shouldRemoveIncompleteDate = (
-  dateString: string,
-  grouping: string
-): boolean => {
-  const date = parseISO(dateString);
-  const now = new TZDate(new Date(), "UTC");
-
-  if (grouping === "day") {
-    return isToday(date);
-  }
-  if (grouping === "week") {
-    return isSameWeek(date, now, { weekStartsOn: 0 });
-  }
-  if (grouping === "month") {
-    return isSameMonth(date, now);
-  }
-
-  return false;
-};
+}
 
 const mergePackageData = (
   data: PackageData[],
@@ -124,16 +54,6 @@ const mergePackageData = (
     date,
     ...packagesByDate[date],
   }));
-};
-
-const formatNumber = (value: number): string => {
-  if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(1)}M`;
-  }
-  if (value >= 1000) {
-    return `${(value / 1000).toFixed(0)}K`;
-  }
-  return value.toString();
 };
 
 const generateSVGChart = (
